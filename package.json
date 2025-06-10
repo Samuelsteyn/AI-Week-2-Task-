@@ -1,0 +1,14 @@
+{
+  "name": "playwright-tests",
+  "version": "1.0.0",
+  "description": "Basic Playwright test setup",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

@@ -1,0 +1,2 @@
+// Run the testsuite 
+npx playwright test tests/test-suite.spec.ts --project=chrome --headed 
