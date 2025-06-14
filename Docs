@@ -9,3 +9,9 @@ npx playwright test tests/test-suite.spec.ts --project=chrome --headed
  4. git commit -m "Initial commit"
  5. git push -u origin main
  
+
+ //pull 
+git branch
+git checkout -b master1
+git add .
+git commit -m "Your descriptive message"
