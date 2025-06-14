@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { InventoryPage } from './pages/InventoryPage';
 const credentials = require('../credentials');
 
 // Store browser context for cleanup
@@ -63,15 +64,25 @@ test.describe('E2E Test Suite', () => {
     });
 
     test('add products to cart', async ({ page }) => {
-      await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
-      await page.locator('[data-test="add-to-cart-sauce-labs-bike-light"]').click();
-      await page.waitForSelector('.shopping_cart_badge');
-      await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
-      await page.locator('.shopping_cart_link').click();
+      const inventoryPage = new InventoryPage(page);
+      await inventoryPage.addToCartByTestId('sauce-labs-backpack');
+      await inventoryPage.addToCartByTestId('sauce-labs-bike-light');
+      await expect(inventoryPage.cartBadge).toHaveText('2');
+      await inventoryPage.openCart();
       await page.waitForSelector('.cart_list');
       await expect(page).toHaveURL(/.*cart.html/);
       const cartItems = await page.locator('.cart_item').count();
       expect(cartItems).toBe(2);
+    });
+
+    test('select and view a product', async ({ page }) => {
+      const inventoryPage = new InventoryPage(page);
+      await inventoryPage.isLoaded();
+      const firstProductName = await inventoryPage.productNames.first().textContent();
+      expect(firstProductName).toBeTruthy();
+      await inventoryPage.productNames.first().click();
+      await page.waitForSelector('.inventory_details_name');
+      await expect(page.locator('.inventory_details_name')).toHaveText(String(firstProductName));
     });
   });
 

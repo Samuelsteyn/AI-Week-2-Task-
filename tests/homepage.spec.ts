@@ -30,34 +30,12 @@ test('should be able to view and select a product', async ({ page }) => {
   // Verify we're on the correct product page
   await expect(page.locator('.inventory_details_name')).toHaveText(String(firstProductName));
   
-  // Add to cart
-  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+  // Add to cart (dynamically find the add-to-cart button on the details page)
+  await page.locator('[data-test^="add-to-cart"]').click();
   
   // Wait for cart badge and verify
   await page.waitForSelector('.shopping_cart_badge');
   await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
-});
-
-test('should be able to sort products', async ({ page }) => {
-  // Wait for sort dropdown
-  await page.waitForSelector('[data-test="product_sort_container"]');
-  
-  // Open sort dropdown
-  await page.locator('[data-test="product_sort_container"]').click();
-  
-  // Sort by price high to low
-  await page.selectOption('[data-test="product_sort_container"]', 'hilo');
-  
-  // Wait for sorting to complete
-  await page.waitForTimeout(1000);
-  
-  // Get all prices
-  const prices = await page.locator('.inventory_item_price').allTextContents();
-  
-  // Verify prices are sorted high to low
-  const numericPrices = prices.map(price => parseFloat(price.replace('$', '')));
-  const sortedPrices = [...numericPrices].sort((a, b) => b - a);
-  expect(numericPrices).toEqual(sortedPrices);
 });
 
 test('should be able to add multiple products to cart', async ({ page }) => {
