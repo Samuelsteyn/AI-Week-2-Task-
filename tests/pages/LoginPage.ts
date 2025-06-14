@@ -1,24 +1,22 @@
 import { Page, Locator } from '@playwright/test';
 
-const LOGIN_URL = 'https://www.saucedemo.com/';
-
-class LoginPage {
+export class LoginPage {
   readonly page: Page;
   readonly usernameInput: Locator;
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
-  readonly error: Locator;
+  readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.usernameInput = page.locator('[data-test="username"]');
     this.passwordInput = page.locator('[data-test="password"]');
     this.loginButton = page.locator('[data-test="login-button"]');
-    this.error = page.locator('[data-test="error"]');
+    this.errorMessage = page.locator('[data-test="error"]');
   }
 
   async goto() {
-    await this.page.goto(LOGIN_URL);
+    await this.page.goto('https://www.saucedemo.com/');
   }
 
   async login(username: string, password: string) {
@@ -27,13 +25,7 @@ class LoginPage {
     await this.loginButton.click();
   }
 
-  async clickLogin() {
-    await this.loginButton.click();
+  async getErrorMessage() {
+    return this.errorMessage.textContent();
   }
-
-  errorMessage() {
-    return this.error;
-  }
-}
-
-export { LoginPage }; 
+} 

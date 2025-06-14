@@ -1,52 +1,104 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from './pages/login.page';
-import { DashboardPage } from './pages/dashboard.page';
 const credentials = require('../credentials');
 
 test.beforeEach(async ({ page }) => {
   // Login before each test
-  const loginPage = new LoginPage(page);
-  await loginPage.goto();
-  await loginPage.login(credentials.validUser.username, credentials.validUser.password);
-  const dashboardPage = new DashboardPage(page);
-  await dashboardPage.waitForInventory();
+  await page.goto('https://www.saucedemo.com/');
+  await page.locator('[data-test="username"]').fill(credentials.validUser.username);
+  await page.locator('[data-test="password"]').fill(credentials.validUser.password);
+  await page.locator('[data-test="login-button"]').click();
+  // Verify we're on the inventory page
+  await expect(page).toHaveURL(/.*inventory.html/);
+  // Wait for the inventory to load
+  await page.waitForSelector('.inventory_list');
 });
 
 test('should be able to view and select a product', async ({ page }) => {
-  const dashboardPage = new DashboardPage(page);
-  await dashboardPage.expectProductListVisible();
-  const firstProductName = await dashboardPage.getFirstProductName();
+  // Verify the product list is visible
+  await expect(page.locator('.inventory_list')).toBeVisible({ timeout: 10000 });
+
+  // Get the first product's name
+  const firstProductName = await page.locator('.inventory_item_name').first().textContent();
   expect(firstProductName).toBeTruthy();
-  await dashboardPage.clickFirstProduct();
-  await dashboardPage.expectProductDetailsPage(firstProductName ?? '');
-  await dashboardPage.addToCart('sauce-labs-backpack');
-  await dashboardPage.expectCartBadge('1');
+  
+  // Click on the first product
+  await page.locator('.inventory_item_name').first().click();
+  
+  // Wait for product details page to load
+  await page.waitForSelector('.inventory_details_name');
+  
+  // Verify we're on the correct product page
+  await expect(page.locator('.inventory_details_name')).toHaveText(String(firstProductName));
+  
+  // Add to cart
+  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+  
+  // Wait for cart badge and verify
+  await page.waitForSelector('.shopping_cart_badge');
+  await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
 });
 
 test('should be able to sort products', async ({ page }) => {
-  const dashboardPage = new DashboardPage(page);
-  await dashboardPage.sortBy('hilo');
-  const numericPrices = await dashboardPage.getAllProductPrices();
+  // Wait for sort dropdown
+  await page.waitForSelector('[data-test="product_sort_container"]');
+  
+  // Open sort dropdown
+  await page.locator('[data-test="product_sort_container"]').click();
+  
+  // Sort by price high to low
+  await page.selectOption('[data-test="product_sort_container"]', 'hilo');
+  
+  // Wait for sorting to complete
+  await page.waitForTimeout(1000);
+  
+  // Get all prices
+  const prices = await page.locator('.inventory_item_price').allTextContents();
+  
+  // Verify prices are sorted high to low
+  const numericPrices = prices.map(price => parseFloat(price.replace('$', '')));
   const sortedPrices = [...numericPrices].sort((a, b) => b - a);
   expect(numericPrices).toEqual(sortedPrices);
 });
 
 test('should be able to add multiple products to cart', async ({ page }) => {
-  const dashboardPage = new DashboardPage(page);
-  await dashboardPage.addToCart('sauce-labs-backpack');
-  await dashboardPage.addToCart('sauce-labs-bike-light');
-  await dashboardPage.expectCartBadge('2');
-  await dashboardPage.goToCart();
-  await dashboardPage.expectOnCartPage();
-  const cartItems = await dashboardPage.getCartItemsCount();
+  // Add first product to cart
+  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+  
+  // Add second product to cart
+  await page.locator('[data-test="add-to-cart-sauce-labs-bike-light"]').click();
+  
+  // Wait for cart badge to update
+  await page.waitForSelector('.shopping_cart_badge');
+  
+  // Verify cart badge shows 2 items
+  await expect(page.locator('.shopping_cart_badge')).toHaveText('2');
+  
+  // Click cart icon
+  await page.locator('.shopping_cart_link').click();
+  
+  // Wait for cart page to load
+  await page.waitForSelector('.cart_list');
+  
+  // Verify we're on cart page
+  await expect(page).toHaveURL(/.*cart.html/);
+  
+  // Verify both items are in cart
+  const cartItems = await page.locator('.cart_item').count();
   expect(cartItems).toBe(2);
 });
 
 test('should be able to filter products by name', async ({ page }) => {
-  const dashboardPage = new DashboardPage(page);
-  const productNames = await dashboardPage.getAllProductNames();
+  // Wait for products to load
+  await page.waitForSelector('.inventory_item_name');
+  
+  // Get all product names
+  const productNames = await page.locator('.inventory_item_name').allTextContents();
+  
+  // Verify we have products
   expect(productNames.length).toBeGreaterThan(0);
+  
+  // Verify each product name is visible
   for (const name of productNames) {
-    await dashboardPage.expectProductNameVisible(name);
+    await expect(page.locator('.inventory_item_name', { hasText: name })).toBeVisible();
   }
 }); 
