@@ -1,2 +1,11 @@
 // Run the testsuite 
 npx playwright test tests/test-suite.spec.ts --project=chrome --headed 
+
+
+//Git Commands
+ 1. git init
+ 2. git remote set-url origin https://github.com/Samuelsteyn/AI-Basics-Week-1-Task.git
+ 3. git add .
+ 4. git commit -m "Initial commit"
+ 5. git push -u origin main
+ 

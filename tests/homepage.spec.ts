@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+const credentials = require('../credentials');
 
 test.beforeEach(async ({ page }) => {
   // Login before each test
   await page.goto('https://www.saucedemo.com/');
-  await page.locator('[data-test="username"]').fill('standard_user');
-  await page.locator('[data-test="password"]').fill('secret_sauce');
+  await page.locator('[data-test="username"]').fill(credentials.validUser.username);
+  await page.locator('[data-test="password"]').fill(credentials.validUser.password);
   await page.locator('[data-test="login-button"]').click();
   // Verify we're on the inventory page
   await expect(page).toHaveURL(/.*inventory.html/);
